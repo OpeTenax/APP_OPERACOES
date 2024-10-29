@@ -415,25 +415,16 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
         with col1:
             st.subheader('PL x Estratégia')
             tabela_PL_x_Estrategia = PASSIVO_CONCATENADO.groupby('Estratégia').agg(PL_Total=('Saldo','sum')).reset_index()
-            
-            # # Converte 'PL_Total' e outras colunas para tipo numérico, substituindo erros por NaN
-            # tabela_PL_x_Estrategia['PL_Total'] = pd.to_numeric(tabela_PL_x_Estrategia['PL_Total'], errors='coerce')
-
-            # Realiza a soma e divisão com tratamento para valores NaN
-            tabela_PL_x_Estrategia['% PL'] =tabela_PL_x_Estrategia.sum(axis=1) / np.sum(tabela_PL_x_Estrategia['PL_Total']) * 100
             st.dataframe(tabela_PL_x_Estrategia,hide_index=True)
         
         with col2:
             st.subheader('Fundos x PL')
             tabela_Fundo_x_PL = PASSIVO_CONCATENADO.groupby('Classificação').agg(PL_Total=('Saldo','sum')).reset_index()
             # Converte 'PL_Total' e outras colunas para tipo numérico, substituindo erros por NaN
-            tabela_Fundo_x_PL['PL_Total'] = pd.to_numeric(tabela_Fundo_x_PL['PL_Total'], errors='coerce')
+            # tabela_Fundo_x_PL['PL_Total'] = pd.to_numeric(tabela_Fundo_x_PL['PL_Total'])
 
             # Cálculo do percentual do PL total
-            tabela_Fundo_x_PL['% PL'] = round(
-                tabela_Fundo_x_PL.sum(axis=1)/np.sum(tabela_Fundo_x_PL['PL_Total'])*100
-                ,2
-            )
+            # tabela_Fundo_x_PL['% PL'] = round(tabela_Fundo_x_PL.sum(axis=1)/np.sum(tabela_Fundo_x_PL['PL_Total'])*100,2)
             st.dataframe(tabela_Fundo_x_PL,hide_index=True)
         
         with col3:
@@ -441,10 +432,10 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL = PASSIVO_CONCATENADO.groupby('Classificação do Cliente').agg(PL_Total=('Saldo','sum')).reset_index()
 
             # Converte 'PL_Total' e outras colunas para tipo numérico, substituindo erros por NaN
-            tabela_Passivo_x_PL['PL_Total'] = pd.to_numeric(tabela_Passivo_x_PL['PL_Total'], errors='coerce')
+            # tabela_Passivo_x_PL['PL_Total'] = pd.to_numeric(tabela_Passivo_x_PL['PL_Total'], errors='coerce')
 
             # Cálculo do percentual do PL total
-            tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL.sum(axis=1)/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
+            # tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL.sum(axis=1)/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
             st.dataframe(tabela_Passivo_x_PL,hide_index=True)
 
         st.divider()
