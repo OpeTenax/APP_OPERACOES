@@ -416,11 +416,11 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             st.subheader('PL x Estratégia')
             tabela_PL_x_Estrategia = PASSIVO_CONCATENADO.groupby('Estratégia').agg(PL_Total=('Saldo','sum')).reset_index()
             
-            # Converte 'PL_Total' e outras colunas para tipo numérico, substituindo erros por NaN
-            tabela_PL_x_Estrategia['PL_Total'] = pd.to_numeric(tabela_PL_x_Estrategia['PL_Total'], errors='coerce')
+            # # Converte 'PL_Total' e outras colunas para tipo numérico, substituindo erros por NaN
+            # tabela_PL_x_Estrategia['PL_Total'] = pd.to_numeric(tabela_PL_x_Estrategia['PL_Total'], errors='coerce')
 
             # Realiza a soma e divisão com tratamento para valores NaN
-            tabela_PL_x_Estrategia['% PL'] = round(tabela_PL_x_Estrategia.sum(axis=1) / np.sum(tabela_PL_x_Estrategia['PL_Total']) * 100,2)
+            tabela_PL_x_Estrategia['% PL'] =tabela_PL_x_Estrategia.sum(axis=1) / np.sum(tabela_PL_x_Estrategia['PL_Total']) * 100
             st.dataframe(tabela_PL_x_Estrategia,hide_index=True)
         
         with col2:
