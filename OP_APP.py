@@ -569,7 +569,6 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
 
     with tab_consolidado_cotista:
         st.subheader('Consolidação Passivo x PL')
-        tabelas = st.checkbox('Ajustar tabelas')
         col1, col2, col3,col4,col5 = st.columns(5)
         with col1: 
             
@@ -582,7 +581,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True, use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True, use_container_width=True)
             
             
         with col2: 
@@ -595,7 +594,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 
         with col3: 
             st.title('Ações')
@@ -607,7 +606,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 
         with col4: 
             st.title('Renda Fixa')
@@ -619,7 +618,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 
         with col5: 
             st.title('Crédito')
