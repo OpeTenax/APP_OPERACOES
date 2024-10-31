@@ -13,6 +13,7 @@ client_id = st.secrets['azure']["client_id"]
 authority = st.secrets['azure']["authority"]
 connection_string = st.secrets['azure']["connection_string"]
 container_name = st.secrets['azure']['container_name']
+
 # Mapeamentos princiais
 acoes = ['Tenax Acoes A FIC FIA','Tenax Acoes Alocadores FIC FIA','Tenax Acoes FIC FIA','Tenax Acoes Institucional A FIC FIA','Tenax Acoes Master FIA','Tenax Acoes Master Institucional FIA','TX A Acoes FIA','Tenax Equity Hedge FIM']
 macro = ['Tenax Macro A FIC FIM','Tenax Macro Alocadores FIC FIM','Tenax Macro FIC FIM','Tenax Macro Master FIM']
@@ -394,8 +395,11 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
                 resumo_passivo()
         elif (fundos_sem_mapeamento != 0 ) & (passivo_sem_mapeamento == 0):
             resumo_fundos()
-        else:
+        
+        elif (fundos_sem_mapeamento == 0 ) & (passivo_sem_mapeamento != 0):
             resumo_passivo()
+        else:
+            st.write('Toda a base de passivo está mapeada.')
     
     @st.cache_data
     def convert_df(df):
@@ -413,7 +417,18 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
 
     tab_posicao_mensal, tab_consolidado_fundo, tab_consolidado_cotista = st.tabs(['Consolidado Mensal','Consolidado Fundo','Consolidado Cotista'])
     MASTERS = ['Tenax Acoes Master FIA','Tenax Acoes Master Institucional FIA','Tenax Macro Master FIM','Tenax Total Return Master FIM','Tenax Total Return Prev Master FIFE','Tenax TR Master FIA','Geri Tenax FI RF','Synta Tenax FI RF']
-    COTISTAS_TENAX = ['TENAX RFA INCENTIVAD','TENAX RFA PREVIDENCIA FIE I FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE  INVESTIMENTO RENDA FIXA']
+    COTISTAS_TENAX = ['TENAX RFA INCENTIVAD','TENAX RFA PREVIDENCIA FIE I FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE  INVESTIMENTO RENDA FIXA',
+                      'TENAX ACOES A FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO EM ACOES',
+                      'TENAX ACOES ALOCADORES FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO EM ACOES',
+                      'TENAX ACOES FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO EM ACOES',
+                      'TENAX ACOES INSTITUCIONAL A FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO EM ACOES',
+                      'TENAX ICATU TOTAL RETURN PREVIDENCIA FIE FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO MU',
+                      'TENAX MACRO A FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO MULTIMERCADO',
+                      'TENAX MACRO ALOCADORES FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO MULTIMERCADO',
+                      'TENAX MACRO FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO MULTIMERCADO',
+                      'TENAX PART FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO MULTIMERCADO',
+                      'TENAX RFA INCENTIVADO INFRA FICFIRF CRPR RL','TENAX RFA PREVIDENCIA FIE I FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE INVESTIMENTO RENDA FIXA',
+                      'TENAX T RET A FICFIM','TENAX TOT RET FICFIM','TENAX TOT RET MASTER','TENAX TR AÇÕES FIC','TENAX TRET A FICFIM']
     
     PASSIVO_CONCATENADO = PASSIVO_CONCATENADO.fillna('Sem Mapeamento')
     PASSIVO_CONCATENADO_SEM_FILTRO = PASSIVO_CONCATENADO
@@ -586,10 +601,8 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
 
     with tab_consolidado_cotista:
         st.subheader('Consolidação Passivo x PL')
-        tabelas = st.checkbox('Ajustar tabelas')
         col1, col2, col3,col4,col5 = st.columns(5)
         with col1: 
-            
             st.title('Macro') 
             filtro_fundo_col1 = st.selectbox('Fundo: ',[item for item in macro if item not in MASTERS])
             tabela_Passivo_x_PL = PASSIVO_CONCATENADO[PASSIVO_CONCATENADO['Nome Padrão']==filtro_fundo_col1].groupby('Cotista').agg(
@@ -599,7 +612,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True, use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True, use_container_width=True)
             
             
         with col2: 
@@ -612,7 +625,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 
         with col3: 
             st.title('Ações')
@@ -624,7 +637,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 
         with col4: 
             st.title('Renda Fixa')
@@ -636,7 +649,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 
         with col5: 
             st.title('Crédito')
@@ -648,7 +661,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 #! '''Código base para o Batimento de Trades'''
 def batimento_de_trades(TRADES_LOTE,TRADES_CLEARING,TRADES_OFF,DE_PARA_B3):
     
