@@ -731,7 +731,10 @@ def main():
         handle_batimento_de_trades(date)
     elif funcionalidade == 'Passivo Tenax':
         date = st.sidebar.date_input("Informe a data desejada:", format='DD-MM-YYYY')
-        handle_passivo(date)        
+        try:            
+            handle_passivo(date)        
+        except:
+            st.warning('Ainda não temos arquivo para esta data favor selecionar outra.')
     if st.sidebar.button('Reprocessar'):
         st.rerun()
 
