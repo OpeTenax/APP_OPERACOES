@@ -630,7 +630,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 #! '''Código base para o Batimento de Trades'''
 def batimento_de_trades(TRADES_LOTE,TRADES_CLEARING,TRADES_OFF,DE_PARA_B3):
     
