@@ -414,15 +414,20 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
 
     tab_posicao_mensal, tab_consolidado_fundo, tab_consolidado_cotista = st.tabs(['Consolidado Mensal','Consolidado Fundo','Consolidado Cotista'])
     MASTERS = ['Tenax Acoes Master FIA','Tenax Acoes Master Institucional FIA','Tenax Macro Master FIM','Tenax Total Return Master FIM','Tenax Total Return Prev Master FIFE','Tenax TR Master FIA','Geri Tenax FI RF','Synta Tenax FI RF']
+    COTISTAS_TENAX = ['TENAX RFA INCENTIVAD','TENAX RFA PREVIDENCIA FIE I FUNDO DE INVESTIMENTO EM COTAS DE FUNDOS DE  INVESTIMENTO RENDA FIXA']
+    
     PASSIVO_CONCATENADO = PASSIVO_CONCATENADO.fillna('Sem Mapeamento')
+    PASSIVO_CONCATENADO_SEM_FILTRO = PASSIVO_CONCATENADO
     PASSIVO_CONCATENADO = PASSIVO_CONCATENADO[~PASSIVO_CONCATENADO['Nome Padrão'].isin(MASTERS)]
+    PASSIVO_CONCATENADO = PASSIVO_CONCATENADO[~PASSIVO_CONCATENADO['Cotista'].isin(COTISTAS_TENAX)]
+    # PASSIVO_CONCATENADO[PASSIVO_CONCATENADO['Classificação']=='Crédito Prev']
     
     with tab_posicao_mensal:
         st.title('Posição Mensal')
         st.subheader('Alocador x Estratégia')
         tabela_Alocador_x_Estrategia = pd.pivot_table(PASSIVO_CONCATENADO, values='Saldo',index='Alocador Final',columns='Classificação', aggfunc='sum').round(0)
         tabela_Alocador_x_Estrategia['Total'] = tabela_Alocador_x_Estrategia.sum(axis=1)
-        tabela_Alocador_x_Estrategia['% Total'] = round(tabela_Alocador_x_Estrategia.sum(axis=1)/np.sum(tabela_Alocador_x_Estrategia['Total'])*100,2)
+        tabela_Alocador_x_Estrategia['% Total'] = round(tabela_Alocador_x_Estrategia.sum(axis=1)/np.sum(tabela_Alocador_x_Estrategia['Total'],axis=0)*100,2)
         st.dataframe(tabela_Alocador_x_Estrategia,use_container_width=True)
         st.divider()
         # Tabelas consolidadas
@@ -457,6 +462,19 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
         tabela_Passivo_x_Estrategia = pd.pivot_table(PASSIVO_CONCATENADO, values='Saldo',index='Classificação do Cliente',columns='Classificação', aggfunc='sum').round(0)
         tabela_Passivo_x_Estrategia['Total'] = tabela_Passivo_x_Estrategia.sum(axis=1)
         tabela_Passivo_x_Estrategia['% Total'] = round(tabela_Passivo_x_Estrategia.sum(axis=1)/np.sum(tabela_Passivo_x_Estrategia['Total'])*100,2)
+        tabela_Passivo_x_Estrategia = pd.pivot_table(
+            PASSIVO_CONCATENADO, 
+            values='Saldo', 
+            index='Classificação do Cliente', 
+            columns='Classificação', 
+            aggfunc='sum'
+        ).round(0)
+
+        # Calcula a soma das colunas e adiciona ao DataFrame como uma nova linha chamada "Total"
+        tabela_Passivo_x_Estrategia.loc['Total'] = tabela_Passivo_x_Estrategia.sum()
+
+
+
         st.dataframe(tabela_Passivo_x_Estrategia,use_container_width=True)
         st.divider()
 
@@ -569,6 +587,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
 
     with tab_consolidado_cotista:
         st.subheader('Consolidação Passivo x PL')
+        tabelas = st.checkbox('Ajustar tabelas')
         col1, col2, col3,col4,col5 = st.columns(5)
         with col1: 
             
@@ -581,7 +600,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True, use_container_width=True)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True, use_container_width=tabelas)
             
             
         with col2: 
@@ -594,7 +613,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
 
         with col3: 
             st.title('Ações')
@@ -606,7 +625,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
 
         with col4: 
             st.title('Renda Fixa')
@@ -618,7 +637,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
 
         with col5: 
             st.title('Crédito')
@@ -630,7 +649,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
             # Cálculo do percentual do PL total
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
-            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
 #! '''Código base para o Batimento de Trades'''
 def batimento_de_trades(TRADES_LOTE,TRADES_CLEARING,TRADES_OFF,DE_PARA_B3):
     
