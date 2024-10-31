@@ -13,7 +13,6 @@ client_id = st.secrets['azure']["client_id"]
 authority = st.secrets['azure']["authority"]
 connection_string = st.secrets['azure']["connection_string"]
 container_name = st.secrets['azure']['container_name']
-
 # Mapeamentos princiais
 acoes = ['Tenax Acoes A FIC FIA','Tenax Acoes Alocadores FIC FIA','Tenax Acoes FIC FIA','Tenax Acoes Institucional A FIC FIA','Tenax Acoes Master FIA','Tenax Acoes Master Institucional FIA','TX A Acoes FIA','Tenax Equity Hedge FIM']
 macro = ['Tenax Macro A FIC FIM','Tenax Macro Alocadores FIC FIM','Tenax Macro FIC FIM','Tenax Macro Master FIM']
@@ -427,7 +426,7 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
         st.subheader('Alocador x Estratégia')
         tabela_Alocador_x_Estrategia = pd.pivot_table(PASSIVO_CONCATENADO, values='Saldo',index='Alocador Final',columns='Classificação', aggfunc='sum').round(0)
         tabela_Alocador_x_Estrategia['Total'] = tabela_Alocador_x_Estrategia.sum(axis=1)
-        tabela_Alocador_x_Estrategia['% Total'] = round(tabela_Alocador_x_Estrategia.sum(axis=1)/np.sum(tabela_Alocador_x_Estrategia['Total'],axis=0)*100,2)
+        tabela_Alocador_x_Estrategia['% Total'] = round(tabela_Alocador_x_Estrategia['Total']/np.sum(tabela_Alocador_x_Estrategia['Total'],axis=0)*100,2)
         st.dataframe(tabela_Alocador_x_Estrategia,use_container_width=True)
         st.divider()
         # Tabelas consolidadas
@@ -461,14 +460,14 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
         st.title('Mapa do Passivo')
         tabela_Passivo_x_Estrategia = pd.pivot_table(PASSIVO_CONCATENADO, values='Saldo',index='Classificação do Cliente',columns='Classificação', aggfunc='sum').round(0)
         tabela_Passivo_x_Estrategia['Total'] = tabela_Passivo_x_Estrategia.sum(axis=1)
-        tabela_Passivo_x_Estrategia['% Total'] = round(tabela_Passivo_x_Estrategia.sum(axis=1)/np.sum(tabela_Passivo_x_Estrategia['Total'])*100,2)
-        tabela_Passivo_x_Estrategia = pd.pivot_table(
-            PASSIVO_CONCATENADO, 
-            values='Saldo', 
-            index='Classificação do Cliente', 
-            columns='Classificação', 
-            aggfunc='sum'
-        ).round(0)
+        tabela_Passivo_x_Estrategia['% Total'] = round(tabela_Passivo_x_Estrategia['Total']/np.sum(tabela_Passivo_x_Estrategia['Total'])*100,2)
+        # tabela_Passivo_x_Estrategia = pd.pivot_table(
+        #     PASSIVO_CONCATENADO, 
+        #     values='Saldo', 
+        #     index='Classificação do Cliente', 
+        #     columns='Classificação', 
+        #     aggfunc='sum'
+        # ).round(0)
 
         # Calcula a soma das colunas e adiciona ao DataFrame como uma nova linha chamada "Total"
         tabela_Passivo_x_Estrategia.loc['Total'] = tabela_Passivo_x_Estrategia.sum()
