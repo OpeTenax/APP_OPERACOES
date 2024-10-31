@@ -132,15 +132,19 @@ def load_mapeamento_passivo(PASSIVO_CONCATENADO):
     arquivo = f'Passivo_Mapeamento_Passivo.csv'
     MAPEAMENTO_PASSIVO = load_tables_blob(arquivo,';')
     MAPEAMENTO_PASSIVO.drop_duplicates(inplace=True)
+    MAPEAMENTO_PASSIVO = MAPEAMENTO_PASSIVO.apply(lambda x: x.str.rstrip() if x.dtype == "object" else x)
+    PASSIVO_CONCATENADO = PASSIVO_CONCATENADO.apply(lambda x: x.str.rstrip() if x.dtype == "object" else x)
+    MAPEAMENTO_PASSIVO = MAPEAMENTO_PASSIVO.drop_duplicates()
+    PASSIVO_CONCATENADO = PASSIVO_CONCATENADO.drop_duplicates()
 
     PASSIVO_CONCATENADO['Estratégia'] = PASSIVO_CONCATENADO['CNPJ do Fundo'].map(MAPEAMENTO_FUNDOS.set_index('CNPJ')['Estrategia'])
     PASSIVO_CONCATENADO['Classificação'] = PASSIVO_CONCATENADO['CNPJ do Fundo'].map(MAPEAMENTO_FUNDOS.set_index('CNPJ')['Fundos'])
     PASSIVO_CONCATENADO['Nome Padrão'] = PASSIVO_CONCATENADO['CNPJ do Fundo'].map(MAPEAMENTO_FUNDOS.set_index('CNPJ')['Nome Padrao'])
-    
+
     PASSIVO_CONCATENADO['Alocador Final'] = PASSIVO_CONCATENADO['Cotista'].map(MAPEAMENTO_PASSIVO.set_index('Nome do cotista')['Alocador Final'])
     PASSIVO_CONCATENADO['Classificação do Cliente'] = PASSIVO_CONCATENADO['Cotista'].map(MAPEAMENTO_PASSIVO.set_index('Nome do cotista')['Classificacao do Cliente'])
     PASSIVO_CONCATENADO['Classificação do Cotista'] = PASSIVO_CONCATENADO['Cotista'].map(MAPEAMENTO_PASSIVO.set_index('Nome do cotista')['Classificacao do Cotista'])
-
+    
     return PASSIVO_CONCATENADO
     
 #!'''Funções responsáveis por tratar os arquivos:'''
@@ -363,22 +367,36 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
     PASSIVO_CONCATENADO = load_mapeamento_passivo(PASSIVO_CONCATENADO)
 
     with st.expander('Linhas sem Mapeamento'):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown('Para Mapeamento das colunas "Estratégia", "Classificação" e "Nome Padrão", preencher o arquivo abaixo:')
+        fundos_sem_mapeamento = len(PASSIVO_CONCATENADO[['Fundo','CNPJ do Fundo','Estratégia','Classificação','Nome Padrão']][PASSIVO_CONCATENADO[['Estratégia','Classificação','Nome Padrão']].isna().any(axis=1)].drop_duplicates())
+        passivo_sem_mapeamento = len(PASSIVO_CONCATENADO[['Cotista', 'CPF/CNPJ do cotista','Distribuidor','Alocador Final','Classificação do Cliente','Classificação do Cotista']][PASSIVO_CONCATENADO[['Alocador Final','Classificação do Cliente','Classificação do Cotista']].isna().any(axis=1)].drop_duplicates())
+        
+        def resumo_fundos():
+            st.markdown('Para Mapeamento das colunas "Estratégia", "Classificação" e "Nome Padrão", preencher o arquivo abaixo do caminho abaixo acrescentando as linhas da tabela:')
             st.caption('T:\OPERACOES\DEV\\10.PASSIVO_TENAX\Bases_Auxiliares\Passivo_Mapeamento_Fundos.xlsx')
             
             st.dataframe(
-                PASSIVO_CONCATENADO[['Fundo','CNPJ do Fundo','Estratégia','Classificação','Nome Padrão']][PASSIVO_CONCATENADO[['Estratégia','Classificação','Nome Padrão']].isna().any(axis=1)].drop_duplicates(),
-                use_container_width=True,
-                hide_index=True)
-        with col2:
+                    PASSIVO_CONCATENADO[['Fundo','CNPJ do Fundo','Estratégia','Classificação','Nome Padrão']][PASSIVO_CONCATENADO[['Estratégia','Classificação','Nome Padrão']].isna().any(axis=1)].drop_duplicates(),
+                    use_container_width=True,
+                    hide_index=True)
+            
+        def resumo_passivo():
             st.markdown('Para Mapeamento das colunas "Alocador Final", "Classificação do Cliente" e "Classificação do Cotista", preencher o arquivo abaixo:')
             st.caption('T:\OPERACOES\DEV\\10.PASSIVO_TENAX\Bases_Auxiliares\Passivo_Mapeamento_Passivo.xlsx')
             st.dataframe(
-            PASSIVO_CONCATENADO[['Cotista', 'CPF/CNPJ do cotista','Distribuidor','Alocador Final','Classificação do Cliente','Classificação do Cotista']][PASSIVO_CONCATENADO[['Alocador Final','Classificação do Cliente','Classificação do Cotista']].isna().any(axis=1)].drop_duplicates(),
-                use_container_width=True,
-                hide_index=True)
+                PASSIVO_CONCATENADO[['Cotista', 'CPF/CNPJ do cotista','Distribuidor','Alocador Final','Classificação do Cliente','Classificação do Cotista']][PASSIVO_CONCATENADO[['Alocador Final','Classificação do Cliente','Classificação do Cotista']].isna().any(axis=1)].drop_duplicates(),
+                    use_container_width=True,
+                    hide_index=True)
+            
+        if (fundos_sem_mapeamento != 0 ) & (passivo_sem_mapeamento != 0):
+            col1, col2 = st.columns(2)
+            with col1:
+                resumo_fundos()
+            with col2:
+                resumo_passivo()
+        elif (fundos_sem_mapeamento != 0 ) & (passivo_sem_mapeamento == 0):
+            resumo_fundos()
+        else:
+            resumo_passivo()
     
     @st.cache_data
     def convert_df(df):
@@ -549,6 +567,71 @@ def passivo(PASSIVO_BTG,PASSIVO_INTRAG):
             tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
             st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=True)
 
+    with tab_consolidado_cotista:
+        st.subheader('Consolidação Passivo x PL')
+        tabelas = st.checkbox('Ajustar tabelas')
+        col1, col2, col3,col4,col5 = st.columns(5)
+        with col1: 
+            
+            st.title('Macro') 
+            filtro_fundo_col1 = st.selectbox('Fundo: ',[item for item in macro if item not in MASTERS])
+            tabela_Passivo_x_PL = PASSIVO_CONCATENADO[PASSIVO_CONCATENADO['Nome Padrão']==filtro_fundo_col1].groupby('Cotista').agg(
+                PL_Total=('Saldo','sum')
+                                                                                   ).reset_index()
+            
+            tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
+            # Cálculo do percentual do PL total
+            tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True, use_container_width=tabelas)
+            
+            
+        with col2: 
+            st.title('Total Return')
+            filtro_fundo_col2 = st.selectbox('Fundo: ',[item for item in total_return if item not in MASTERS])
+            tabela_Passivo_x_PL = PASSIVO_CONCATENADO[PASSIVO_CONCATENADO['Nome Padrão']==filtro_fundo_col2].groupby('Cotista').agg(
+                PL_Total=('Saldo','sum')
+                                                                                   ).reset_index()
+            
+            tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
+            # Cálculo do percentual do PL total
+            tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+
+        with col3: 
+            st.title('Ações')
+            filtro_fundo_col3 = st.selectbox('Fundo: ',[item for item in acoes if item not in MASTERS])
+            tabela_Passivo_x_PL = PASSIVO_CONCATENADO[PASSIVO_CONCATENADO['Nome Padrão']==filtro_fundo_col3].groupby('Cotista').agg(
+                PL_Total=('Saldo','sum')
+                                                                                   ).reset_index()
+            
+            tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
+            # Cálculo do percentual do PL total
+            tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+
+        with col4: 
+            st.title('Renda Fixa')
+            filtro_fundo_col4 = st.selectbox('Fundo: ',[item for item in renda_fixa if item not in MASTERS])
+            tabela_Passivo_x_PL = PASSIVO_CONCATENADO[PASSIVO_CONCATENADO['Nome Padrão']==filtro_fundo_col4].groupby('Cotista').agg(
+                PL_Total=('Saldo','sum')
+                                                                                   ).reset_index()
+            
+            tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
+            # Cálculo do percentual do PL total
+            tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
+
+        with col5: 
+            st.title('Crédito')
+            filtro_fundo_col5 = st.selectbox('Fundo: ',[item for item in credito_privado if item not in MASTERS])
+            tabela_Passivo_x_PL = PASSIVO_CONCATENADO[PASSIVO_CONCATENADO['Nome Padrão']==filtro_fundo_col5].groupby('Cotista').agg(
+                PL_Total=('Saldo','sum')
+                                                                                   ).reset_index()
+            
+            tabela_Passivo_x_PL['PL_Total'] = round(tabela_Passivo_x_PL['PL_Total'],0)
+            # Cálculo do percentual do PL total
+            tabela_Passivo_x_PL['% PL'] = round(tabela_Passivo_x_PL['PL_Total']/np.sum(tabela_Passivo_x_PL['PL_Total'])*100,2)
+            st.dataframe(tabela_Passivo_x_PL,hide_index=True,use_container_width=tabelas)
 #! '''Código base para o Batimento de Trades'''
 def batimento_de_trades(TRADES_LOTE,TRADES_CLEARING,TRADES_OFF,DE_PARA_B3):
     
@@ -655,4 +738,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
